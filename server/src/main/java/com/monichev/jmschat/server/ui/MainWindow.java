@@ -2,6 +2,8 @@ package com.monichev.jmschat.server.ui;
 
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -56,6 +58,8 @@ public class MainWindow extends JFrame {
                 super.keyTyped(e);
             }
         });
+
+        textField1.requestFocus();
     }
 
     private void sendMessage() {
