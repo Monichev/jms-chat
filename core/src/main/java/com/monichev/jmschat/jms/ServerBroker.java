@@ -25,6 +25,8 @@ import com.monichev.jmschat.entity.MessageEntity;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.transport.http.HttpTransportServer;
+import org.apache.activemq.transport.vm.VMTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +48,13 @@ public class ServerBroker {
         broker.setTransportConnectorURIs(new String[]{ "http://0.0.0.0:" + port });
         broker.start();
 
+        ((HttpTransportServer) broker.getTransportConnectors().get(0).getServer()).setAllowLinkStealing(true);
+
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(broker.getVmConnectorURI());
         Connection connection;
         try {
             connection = connectionFactory.createConnection();
+            VMTransportFactory.SERVERS.get(broker.getBrokerName()).setAllowLinkStealing(true);
             connection.start();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             serverQueue = this.session.createQueue("server");

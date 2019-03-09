@@ -45,8 +45,9 @@ public class Chat {
     private void sendMessage() {
         String text = textField1.getText();
         textField1.setText("");
-        textArea1.append("Server: " + text + "\n");
         serverBroker.sendMessage(new MessageEntity("server", login, text));
+        textArea1.append("Server: " + text + "\n");
+        textArea1.setCaretPosition(textArea1.getDocument().getLength());
     }
 
     {

@@ -2,7 +2,6 @@ package com.monichev.jmschat.jms;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -16,7 +15,6 @@ import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,7 +32,7 @@ public class ClientBroker implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientBroker.class);
     private final BrokerService brokerService;
     private final MessageProducer producer;
-    private final TemporaryQueue temporaryQueue;
+    private final Queue clientQueue;
     private final Connection connection;
     private final ObjectMapper mapper = new ObjectMapper();
     private Session session;
@@ -58,8 +56,8 @@ public class ClientBroker implements AutoCloseable {
         MessageProducer producer = session.createProducer(null);
         producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 
-        temporaryQueue = session.createTemporaryQueue();
-        MessageConsumer consumer = session.createConsumer(temporaryQueue);
+        clientQueue = session.createQueue(name);
+        MessageConsumer consumer = session.createConsumer(clientQueue);
         consumer.setMessageListener(new MessageListener() {
             @Override
             public void onMessage(Message message) {
@@ -111,7 +109,7 @@ public class ClientBroker implements AutoCloseable {
         TextMessage textMessage = session.createTextMessage();
         textMessage.setText(json);
 
-        textMessage.setJMSReplyTo(temporaryQueue);
+        textMessage.setJMSReplyTo(clientQueue);
 
         textMessage.setJMSCorrelationID(correlationId);
         producer.send(textMessage);
