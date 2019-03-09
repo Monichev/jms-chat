@@ -39,11 +39,11 @@ public class ServerBroker {
     private final MessageProducer producer;
     private final Map<String, Destination> clientQueues = new HashMap<>();
 
-    public ServerBroker(Consumer<MessageEntity> messageReceived, Consumer<String> messageDelivered) throws Exception {
+    public ServerBroker(int port, Consumer<MessageEntity> messageReceived, Consumer<String> messageDelivered) throws Exception {
         broker = new BrokerService();
         broker.setBrokerName("Server");
         broker.setPersistent(true);
-        broker.setTransportConnectorURIs(new String[]{ "tcp://localhost:61616" });
+        broker.setTransportConnectorURIs(new String[]{ "http://0.0.0.0:" + port });
         broker.start();
 
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(broker.getVmConnectorURI());

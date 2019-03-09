@@ -35,7 +35,7 @@ public class MainWindow extends JFrame {
     private final Map<String, Chat> chatMap = new HashMap<>();
 
     public MainWindow() throws Exception {
-        this.broker = new ServerBroker(this::messageReceived, System.out::println);
+        this.broker = new ServerBroker(61616, this::messageReceived, System.out::println);
         setTitle("Server");
         setContentPane($$$getRootComponent$$$());
         setSize(400, 400);

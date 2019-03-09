@@ -147,10 +147,10 @@ public class MainWindow extends JFrame {
         login = new Login(this::onLogin);
     }
 
-    private void onLogin(String login) {
+    private void onLogin(String login, String remoteAddress) {
         nameTextField.setText(login);
         try {
-            broker = new ClientBroker(login, "tcp://localhost:61616", message -> receiveMessage(message.getMessage()), message -> System.out.println(message));
+            broker = new ClientBroker(login, remoteAddress, message -> receiveMessage(message.getMessage()), message -> System.out.println(message));
             ((CardLayout) rootPanel.getLayout()).show(rootPanel, "chat");
         } catch (Exception e) {
             LOGGER.error("Can't run JMS ClientBroker", e);
