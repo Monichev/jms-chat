@@ -20,13 +20,13 @@
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-activemq</artifactId>
+      <artifactId>spring-boot-starter</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-kahadb-store</artifactId>
-      <scope>runtime</scope>
+      <groupId>com.monichev.jmschat</groupId>
+      <artifactId>core</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>

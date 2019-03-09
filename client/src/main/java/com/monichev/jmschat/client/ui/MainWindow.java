@@ -3,15 +3,15 @@ package com.monichev.jmschat.client.ui;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import javax.jms.JMSException;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -20,15 +20,17 @@ import javax.swing.WindowConstants;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.monichev.jmschat.client.jms.Sender;
+import com.monichev.jmschat.entity.MessageEntity;
+import com.monichev.jmschat.jms.ClientBroker;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.annotation.JmsListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MainWindow extends JFrame {
-    private final Sender sender;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class);
     private JTextArea textArea1;
     private JPanel rootPanel;
     private JPanel chatPanel;
@@ -37,16 +39,9 @@ public class MainWindow extends JFrame {
     private JButton sendButton;
     private JTextField nameTextField;
     private Login login;
+    private ClientBroker broker;
 
-    @JmsListener(destination = "client")
-    public void receiveMessage(String message) {
-        textArea1.append("Server: " + message + "\n");
-        textArea1.setCaretPosition(textArea1.getDocument().getLength());
-    }
-
-    @Autowired
-    public MainWindow(Sender sender) {
-        this.sender = sender;
+    public MainWindow() {
         $$$setupUI$$$();
         setTitle("Client");
         setContentPane($$$getRootComponent$$$());
@@ -70,12 +65,21 @@ public class MainWindow extends JFrame {
         textField1.requestFocus();
     }
 
+    public void receiveMessage(String message) {
+        textArea1.append("Server: " + message + "\n");
+        textArea1.setCaretPosition(textArea1.getDocument().getLength());
+    }
+
     private void sendMessage() {
         String text = textField1.getText();
         textField1.setText("");
         textArea1.append("Client: " + text + "\n");
         textArea1.setCaretPosition(textArea1.getDocument().getLength());
-        sender.sendMessage("server", text);
+        try {
+            broker.sendMessage(new MessageEntity(nameTextField.getText(), "server", text));
+        } catch (JMSException e) {
+            LOGGER.error("Can't send message", e);
+        }
     }
 
     /**
@@ -145,6 +149,12 @@ public class MainWindow extends JFrame {
 
     private void onLogin(String login) {
         nameTextField.setText(login);
-        ((CardLayout) rootPanel.getLayout()).show(rootPanel, "chat");
+        try {
+            broker = new ClientBroker(login, "tcp://localhost:61616", message -> receiveMessage(message.getMessage()), message -> System.out.println(message));
+            ((CardLayout) rootPanel.getLayout()).show(rootPanel, "chat");
+        } catch (Exception e) {
+            LOGGER.error("Can't run JMS ClientBroker", e);
+            JOptionPane.showMessageDialog(this, "Can't run JMS ClientBroker\nError: " + e.getLocalizedMessage());
+        }
     }
 }
